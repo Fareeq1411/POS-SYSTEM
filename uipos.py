@@ -1040,6 +1040,8 @@ class SearchDialog(QtWidgets.QDialog):
 
 
 def main() -> None:
+    if sys.platform.startswith("win"):
+        QtCore.QLoggingCategory.setFilterRules("qt.qpa.fonts=false")
     app = QtWidgets.QApplication(sys.argv)
     if sys.platform.startswith("win"):
         app.setFont(QtGui.QFont("Segoe UI", 10))

@@ -33,6 +33,20 @@ class ProductModel:
         self._staff_pool: pooling.MySQLConnectionPool | None = None
         self.cache_path = pathlib.Path(__file__).parent / "products_cache.json"
 
+    def _validate_mysql_connector(self) -> None:
+        version = getattr(mysql.connector, "__version__", "")
+        if not version:
+            return
+        try:
+            major = int(version.split(".")[0])
+        except ValueError:
+            major = 0
+        if major and major < 8:
+            raise DatabaseError(
+                f"MySQL driver {version} is unsupported. "
+                "Uninstall 'mysql-connector' and install 'mysql-connector-python>=8.0'."
+            )
+
     def _get_ssl_ca(self) -> str | None:
         if not self.config.SSL:
             return None
@@ -41,6 +55,7 @@ class ProductModel:
 
     def _pool_connect(self):
         if self._pool is None:
+            self._validate_mysql_connector()
             ssl_ca = self._get_ssl_ca()
             pool_kwargs = {
                 "pool_name": "pos_pool",
@@ -58,6 +73,13 @@ class ProductModel:
                 pool_kwargs["ssl_ca"] = ssl_ca
             try:
                 self._pool = pooling.MySQLConnectionPool(**pool_kwargs)
+            except AttributeError as exc:
+                if "wrap_socket" in str(exc):
+                    raise DatabaseError(
+                        "MySQL SSL support failed. Install 'mysql-connector-python>=8.0' "
+                        "or use a Python build with SSL support."
+                    ) from exc
+                raise DatabaseError(str(exc)) from exc
             except mysql.connector.Error as exc:  # type: ignore
                 raise DatabaseError(str(exc)) from exc
         try:
@@ -67,6 +89,7 @@ class ProductModel:
 
     def _staff_pool_connect(self):
         if self._staff_pool is None:
+            self._validate_mysql_connector()
             ssl_ca = self._get_ssl_ca()
             pool_kwargs = {
                 "pool_name": "staff_pool",
@@ -84,6 +107,13 @@ class ProductModel:
                 pool_kwargs["ssl_ca"] = ssl_ca
             try:
                 self._staff_pool = pooling.MySQLConnectionPool(**pool_kwargs)
+            except AttributeError as exc:
+                if "wrap_socket" in str(exc):
+                    raise DatabaseError(
+                        "MySQL SSL support failed. Install 'mysql-connector-python>=8.0' "
+                        "or use a Python build with SSL support."
+                    ) from exc
+                raise DatabaseError(str(exc)) from exc
             except mysql.connector.Error as exc:  # type: ignore
                 raise DatabaseError(str(exc)) from exc
         try:
