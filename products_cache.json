@@ -1,0 +1,15 @@
+[
+  {
+    "id": 3424087780,
+    "sku": "BEVERAGES-MILO-1KG-4539",
+    "name": "MILO 1KG",
+    "stock": 0.0,
+    "category": "Beverages",
+    "cost_price": 2.7,
+    "sell_price": 3.0,
+    "description": "",
+    "barcode": "0551870168357",
+    "gst": 1,
+    "gst_rate": 2.5,
+    "status": null,
+    "deduct_unit": 
